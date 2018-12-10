@@ -1,7 +1,7 @@
 LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
-LOCAL_SRC_FILES := UBTSpeechPersistent.c threadpool.c UBTSpeechDemo.c
+LOCAL_SRC_FILES := dprintf.c SpeechPersistent.c threadpool.c SpeechDemo.c
 
 LOCAL_MODULE_PATH := $(TARGET_OUT_OPTIONAL_EXECUTABLES)
 LOCAL_MODULE_TAGS := debug

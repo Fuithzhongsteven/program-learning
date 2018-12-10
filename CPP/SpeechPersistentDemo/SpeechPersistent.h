@@ -1,8 +1,8 @@
 /*
-* Copyright (c) 2017, 深圳市优必选科技有限公司
+* Copyright (c) 2017, steven.zhong
 * All rights reserved.
 *
-* 文件名称：UBTSpeechPersistent.h
+* 文件名称：SpeechPersistent.h
 * 创建时间：2018/11/26
 * 文件标识：
 * 文件摘要：语音存储接口
@@ -35,9 +35,9 @@ typedef enum {
  * 返回值: void
  * 时间: 2018/11/26
  */
-extern void Init(void*param);
+extern void Init(const void*param);
 extern void* speechStart();
-extern int speechProcess(void* handle,char *buf, int len, PersistentType_t type);
+extern int speechProcess(void* handle,const char *buf, int len, PersistentType_t type);
 extern int speechStop(void* handle, int isCompleted);
 extern void unInit();
 

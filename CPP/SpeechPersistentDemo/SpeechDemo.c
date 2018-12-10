@@ -12,11 +12,55 @@
 #include <unistd.h>
 
 #include "threadpool.h"
-#include "UBTSpeechPersistent.h"
+#include "SpeechPersistent.h"
 
 
 
 #define INPUT_FILE "/dev/urandom"
+static void speechProcessInterrupt(int inputFd,char *buffer){
+    int ret = 0;
+    int i = 0;
+    void *handle = speechStart();
+    do{
+        ret = read(inputFd,buffer,1024);
+        buffer[1024] = '\0';
+        if(ret > 0){
+            speechProcess(handle, buffer, ret, TYPE_SEEPCH);
+        }
+    }while(i--);
+    //printf("%s speechStop in\n",__FUNCTION__);
+    speechStop(handle,0); 
+    //printf("%s speechStop out\n",__FUNCTION__);
+}
+
+
+static void speechProcessSuccess(int inputFd,char *buffer){
+    int ret = 0;
+    int i = 0;
+    void *handle = speechStart();
+    i = 32;
+    do{
+        ret = read(inputFd,buffer,1024);
+        buffer[1024] = '\0';
+        if(ret > 0){
+            speechProcess(handle, buffer, ret, TYPE_SEEPCH);
+        }
+    }while(i--);
+    ret = read(inputFd,buffer,2048);
+    buffer[2048] = '\0';
+    if(ret > 0){
+        speechProcess(handle, buffer, ret, TYPE_ASR);
+    }    
+    ret = read(inputFd,buffer,4096);
+    buffer[4096] = '\0';
+    if(ret > 0){
+        speechProcess(handle, buffer, ret, TYPE_NLP);
+    }
+    usleep(100*1000);
+    //printf("%s speechStop in\n",__FUNCTION__);
+    speechStop(handle,1);
+    //printf("%s speechStop out\n",__FUNCTION__);
+}
 
 
 int main(int argc, char *argv[]) {
@@ -30,33 +74,14 @@ int main(int argc, char *argv[]) {
         return 0;
     }
     Init(NULL);
-    void *handle = speechStart();
-    do{
-        ret = read(fd,buff,1024);
-        if(ret > 0){
-            speechProcess(handle, buff, ret, TYPE_SEEPCH);
-        }
-    }while(i--);
-    speechStop(handle,0); 
-    handle = NULL;
-    handle = speechStart();
-    i = 32;
-    do{
-        ret = read(fd,buff,1024);
-        if(ret > 0){
-            speechProcess(handle, buff, ret, TYPE_SEEPCH);
-        }
-    }while(i--);
-    ret = read(fd,buff,2048);
-    if(ret > 0){
-        speechProcess(handle, buff, ret, TYPE_ASR);
-    }    
-    ret = read(fd,buff,4096);
-    if(ret > 0){
-        speechProcess(handle, buff, ret, TYPE_NLP);
-    }
+    speechProcessInterrupt(fd,buff);
     usleep(100*1000);
-    speechStop(handle,1);
+    for(i=0;i<64;i++){
+        speechProcessSuccess(fd,buff);
+        usleep(300*1000);
+    }
+    unInit();
+    close(fd);
 }
 
 
