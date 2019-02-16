@@ -220,6 +220,7 @@ void checkUpload()
     pthread_t pthreadid;
     pthread_create(&pthreadid, NULL, UploadTask, (void *)gpDefaultPath);
     DprintfI("checkUpload gPersistentCount %d %s\n", gPersistentCount, gpDefaultPath);
+    pthread_detach(pthreadid);
 }
 static int doCheckAndTriggerUpload(){
     if(gPersistentCount == MAX_PERSISTENT_COUNT-1){
@@ -356,10 +357,10 @@ static void * StopTask(void *param)
         dir = getDirByID(handle->id);
         remove_file(dir);
         free(dir);
-    }
-    if(handle->completed){
+    }else{
         doCheckAndTriggerUpload();
     }
+    DprintfI("%s id:%p handle:%p completed:%d\n",__FUNCTION__, handle->id, handle, handle->completed);
     DprintfD("%s id:%s handle:%p done\n",__FUNCTION__, handle->id, handle);
 
     if(handle->buf){
@@ -446,6 +447,7 @@ void Init(const void*param)
         DprintfE("create threadpool failed\n");
         return;
     }
+    DprintfI("%s done: param=%s,Pool=%p\n", __FUNCTION__, gSDId, gThreadPool);
     DprintfD("%s out\n",__FUNCTION__);
 }
 void* speechStart()
@@ -476,8 +478,8 @@ void* speechStart()
         free(phandle);
         return NULL;
     }
-    DprintfD("%s id=%s done\n",__FUNCTION__,speechID);//don't use phandle->id here
-    return phandle->id;
+    DprintfD("%s id=%P done\n",__FUNCTION__,speechID);//don't use phandle->id here
+    return speechID;
 }
 
 int speechProcess(void* handle,const char *buf, int len, PersistentType_t type)
@@ -534,7 +536,7 @@ int speechProcess(void* handle,const char *buf, int len, PersistentType_t type)
         free(handlelocal);
         return -1;
     }
-    DprintfD("%s id=%s done\n", __FUNCTION__, (char*)handle);
+    DprintfD("%s id=%p done\n", __FUNCTION__, (char*)handle);
     return 0;
 }
 
@@ -563,12 +565,13 @@ int speechStop(void* handle, int isCompleted)
         free(handlelocal);
         return -1;
     }
-    DprintfD("%s id=%s done\n",__FUNCTION__,(char*)handle);
+    DprintfD("%s id=%p done\n",__FUNCTION__,(char*)handle);
     return 0;
 }
 
 void unInit()
 {
+    DprintfI("%s done: param=%s,Pool=%p\n", __FUNCTION__, gSDId, gThreadPool);
     gInitParam = NULL;
     //if(gThreadPool)threadpool_free(gThreadPool);
     if(gThreadPool)threadpool_destroy(gThreadPool);
