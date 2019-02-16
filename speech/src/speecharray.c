@@ -428,7 +428,7 @@ int skipData(char *data, int len){
 
 
 /**
- * mini数据格式分析
+ * 数据格式分析
  * 默认12通道，32bits每个采样点
  * 输出16bits每个采样点，按通道号排列的6个通道数据
  * 数据格式：
